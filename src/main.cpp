@@ -13,10 +13,10 @@
 
 #include <iostream>
 #include <string>
-// 选择独显来渲染（仅针对N卡有效)。 需要wglew.h
-//extern "C" {
-//	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
-//}
+ //选择独显来渲染（仅针对N卡有效)。 需要wglew.h
+extern "C" {
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
 
 
 // 需要顺时针
