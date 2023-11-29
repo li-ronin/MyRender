@@ -4,7 +4,7 @@ dependencies/*
 # bin
 bin/*
 
-.vs/
+.vs/*
 
 *.props
 ## Ignore Visual Studio temporary files, build results, and
