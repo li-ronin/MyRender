@@ -5,13 +5,13 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
 	unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	 //´Ó´ÅÅÌ(ÎÄ¼şÂ·¾¶)ÖĞ»ñÈ¡"¶¥µã×ÅÉ«Æ÷"ºÍ"Æ¬¶Î×ÅÉ«Æ÷"
+	 //ä»ç£ç›˜(æ–‡ä»¶è·¯å¾„)ä¸­è·å–"é¡¶ç‚¹ç€è‰²å™¨"å’Œ"ç‰‡æ®µç€è‰²å™¨"
 	std::ifstream vertFile;
 	std::ifstream fragFile;
-	// ´ò¿ªÎÄ¼ş
+	// æ‰“å¼€æ–‡ä»¶
 	vertFile.open(vertexPath);
 	fragFile.open(fragmentPath);
-	//±£Ö¤ifstream¶ÔÏó¿ÉÒÔÅ×³öÒì³££º
+	//ä¿è¯ifstreamå¯¹è±¡å¯ä»¥æŠ›å‡ºå¼‚å¸¸ï¼š
 	vertFile.exceptions(std::ifstream::failbit || std::ifstream::badbit);
 	fragFile.exceptions(std::ifstream::failbit || std::ifstream::badbit);
 	try
@@ -56,6 +56,14 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 void Shader::use()
 {
 	glUseProgram(ID);
+}
+
+void Shader::SetUniform3f(const char* name, glm::vec3 vector) {
+	glUniform3f(glGetUniformLocation(ID, name), vector.x, vector.y, vector.z);
+}
+
+void Shader::SetUniform1f(const char* name, float f) {
+	glUniform1f(glGetUniformLocation(ID, name), f);
 }
 
 void Shader::checkCompileError(unsigned int shader_id, std::string type)

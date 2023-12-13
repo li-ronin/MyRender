@@ -2,6 +2,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "Shader.h"
+#include "Material.h"
 #include"GL/glew.h"
 #include"GL/wglew.h"
 #include"GLFW/glfw3.h"
@@ -20,55 +21,64 @@ extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-
+// 立方体的顶点属性，六个面 每个面六个点
 float cube[] = {
-	//     ---- 位置 ----      - 纹理坐标 -	
-		-0.5f,  0.5f, 0.5f,    0.0f, 1.0f,   // 左上 3
-		-0.5f, -0.5f, 0.5f,    0.0f, 0.0f,   // 左下 2
-		 0.5f, -0.5f, 0.5f,    1.0f, 0.0f,   // 右下 1     前
-		 0.5f, -0.5f, 0.5f,    1.0f, 0.0f,   // 右下 1
-		 0.5f,  0.5f, 0.5f,    1.0f, 1.0f,   // 右上 0 
-		-0.5f,  0.5f, 0.5f,    0.0f, 1.0f,   // 左上 3 
+	//     --【0】位置 ---     -【2】纹理坐标 -	   --【3】 法向量 -- 
+		-0.5f,  0.5f, 0.5f,    0.0f, 1.0f,    0.0f,  0.0f,  1.0f,	// 左上 3
+		-0.5f, -0.5f, 0.5f,    0.0f, 0.0f,    0.0f,  0.0f,  1.0f,	// 左下 2
+		 0.5f, -0.5f, 0.5f,    1.0f, 0.0f,    0.0f,  0.0f,  1.0f,	// 右下 1     前
+		 0.5f, -0.5f, 0.5f,    1.0f, 0.0f,    0.0f,  0.0f,  1.0f,	// 右下 1
+		 0.5f,  0.5f, 0.5f,    1.0f, 1.0f,    0.0f,  0.0f,  1.0f,	// 右上 0 
+		-0.5f,  0.5f, 0.5f,    0.0f, 1.0f,    0.0f,  0.0f,  1.0f,	// 左上 3 
 		
 		 
 	
-		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   // 左上 7
-		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f,   // 左下 6   后
-		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   // 右下 5
-		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   // 右下 5
-		 0.5f,  0.5f, -0.5f,    1.0f, 1.0f,   // 右上 4 
-		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   // 左上 7
+		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   0.0f,  0.0f, -1.0f,	// 左上 7
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f,   0.0f,  0.0f, -1.0f,	// 左下 6   后
+		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   0.0f,  0.0f, -1.0f,	// 右下 5
+		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   0.0f,  0.0f, -1.0f,	// 右下 5
+		 0.5f,  0.5f, -0.5f,    1.0f, 1.0f,   0.0f,  0.0f, -1.0f,	// 右上 4 
+		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   0.0f,  0.0f, -1.0f,	// 左上 7
 		
-		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f,   // 左下 6  
-		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   // 左上 7   左
-		-0.5f,  0.5f,  0.5f,    1.0f, 1.0f,   // 左上 3 
-		-0.5f,  0.5f,  0.5f,    1.0f, 1.0f,   // 左上 3 
-		-0.5f, -0.5f,  0.5f,    1.0f, 0.0f,   // 左下 2
-		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f,   // 左下 6  
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f,   -1.0f,  0.0f,  0.0f,	// 左下 6  
+		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   -1.0f,  0.0f,  0.0f,	// 左上 7   左
+		-0.5f,  0.5f,  0.5f,    1.0f, 1.0f,   -1.0f,  0.0f,  0.0f,	// 左上 3 
+		-0.5f,  0.5f,  0.5f,    1.0f, 1.0f,   -1.0f,  0.0f,  0.0f,	// 左上 3 
+		-0.5f, -0.5f,  0.5f,    1.0f, 0.0f,   -1.0f,  0.0f,  0.0f,	// 左下 2
+		-0.5f, -0.5f, -0.5f,    0.0f, 0.0f,   -1.0f,  0.0f,  0.0f,	// 左下 6  
 
-		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   // 右下 5
-		 0.5f,  0.5f, -0.5f,    1.0f, 1.0f,   // 右上 4   右
-		 0.5f,  0.5f,  0.5f,    0.0f, 1.0f,   // 右上 0
-		 0.5f,  0.5f,  0.5f,    0.0f, 1.0f,   // 右上 0
-		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f,   // 右下 1  
-		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   // 右下 5
+		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   1.0f,  0.0f,  0.0f,	// 右下 5
+		 0.5f,  0.5f, -0.5f,    1.0f, 1.0f,   1.0f,  0.0f,  0.0f,	// 右上 4   右
+		 0.5f,  0.5f,  0.5f,    0.0f, 1.0f,   1.0f,  0.0f,  0.0f,	// 右上 0
+		 0.5f,  0.5f,  0.5f,    0.0f, 1.0f,   1.0f,  0.0f,  0.0f,	// 右上 0
+		 0.5f, -0.5f,  0.5f,    0.0f, 0.0f,   1.0f,  0.0f,  0.0f,	// 右下 1  
+		 0.5f, -0.5f, -0.5f,    1.0f, 0.0f,   1.0f,  0.0f,  0.0f,	// 右下 5
 
-		 0.5f,  0.5f,  0.5f,    1.0f, 0.0f,   // 右上 0 
-		 0.5f,  0.5f, -0.5f,    1.0f, 1.0f,   // 右上 4
-		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   // 左上 7  上
-		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   // 左上 7
-		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f,   // 左上 3
-		 0.5f,  0.5f,  0.5f,    1.0f, 0.0f,   // 右上 0 
+		 0.5f,  0.5f,  0.5f,    1.0f, 0.0f,   0.0f,  1.0f,  0.0f,	// 右上 0 
+		 0.5f,  0.5f, -0.5f,    1.0f, 1.0f,   0.0f,  1.0f,  0.0f,	// 右上 4
+		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   0.0f,  1.0f,  0.0f,	// 左上 7  上
+		-0.5f,  0.5f, -0.5f,    0.0f, 1.0f,   0.0f,  1.0f,  0.0f,	// 左上 7
+		-0.5f,  0.5f,  0.5f,    0.0f, 0.0f,   0.0f,  1.0f,  0.0f,	// 左上 3
+		 0.5f,  0.5f,  0.5f,    1.0f, 0.0f,   0.0f,  1.0f,  0.0f,	// 右上 0 
 
-		-0.5f, -0.5f, -0.5f,    0.0f, 1.0f,   // 左下 6
-		 0.5f, -0.5f, -0.5f,    1.0f, 1.0f,   // 右下 5
-		 0.5f, -0.5f,  0.5f,    1.0f, 0.0f,   // 右下 1
-		 0.5f, -0.5f,  0.5f,    1.0f, 0.0f,   // 右下 1  下
-		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f,   // 左下 2
-		-0.5f, -0.5f, -0.5f,    0.0f, 1.0f,   // 左下 6
+		-0.5f, -0.5f, -0.5f,    0.0f, 1.0f,   0.0f, -1.0f,  0.0f,	// 左下 6
+		 0.5f, -0.5f, -0.5f,    1.0f, 1.0f,   0.0f, -1.0f,  0.0f,	// 右下 5
+		 0.5f, -0.5f,  0.5f,    1.0f, 0.0f,   0.0f, -1.0f,  0.0f,	// 右下 1
+		 0.5f, -0.5f,  0.5f,    1.0f, 0.0f,   0.0f, -1.0f,  0.0f,	// 右下 1  下
+		-0.5f, -0.5f,  0.5f,    0.0f, 0.0f,   0.0f, -1.0f,  0.0f,	// 左下 2
+		-0.5f, -0.5f, -0.5f,    0.0f, 1.0f,   0.0f, -1.0f,  0.0f,	// 左下 6
+
+		-15.0f, -3.0f, -15.0f,  0.0f, 1.0f,	  0.0f,  1.0f,  0.0f,
+		 15.0f, -3.0f, -15.0f,  1.0f, 1.0f,	  0.0f,  1.0f,  0.0f,
+		 15.0f, -3.0f,  15.0f,  1.0f, 0.0f,	  0.0f,  1.0f,  0.0f,
+		 15.0f, -3.0f,  15.0f,  1.0f, 0.0f,	  0.0f,  1.0f,  0.0f,
+		-15.0f, -3.0f,  15.0f,  0.0f, 0.0f,	  0.0f,  1.0f,  0.0f,
+		-15.0f, -3.0f, -15.0f,  0.0f, 1.0f,	  0.0f,  1.0f,  0.0f,
+
 
 };
-// 【物体中心位置】
+
+// 【立方体的中心位置】
 glm::vec3 cubePositions[] = {
 	  glm::vec3(0.0f,  0.0f,  0.0f),
 	  glm::vec3(2.0f,  5.0f, -15.0f),
@@ -86,10 +96,9 @@ glm::vec3 cubePositions[] = {
 glm::vec3 cameraPos = glm::vec3{ 0.0f, 0.0f, 3.0f };
 glm::vec3 WorldUp = glm::vec3{ 0.0f, 1.0f, 0.0f };
 Camera MyCamera{ cameraPos, 0.0f, 0.0f, WorldUp };
+float deltaTime = 0.0f;      // 当前帧与上一帧的时间差
+float lastFrameTime = 0.0f;  // 上一帧的时间
 
-// 记录每一帧的时间
-float deltaTime = 0.0f;
-float lastFrameTime = 0.0f;
 
 // 【键盘输入】
 void processKeyBoardInput(GLFWwindow* window) {
@@ -119,12 +128,13 @@ void processKeyBoardInput(GLFWwindow* window) {
 }
 
 // 【鼠标控制镜头方向】
-// 上一帧 鼠标在屏幕的X位置
-float lastX=0.0f;  
-float lastY=0.0f;
-bool firstMouse = true;
+float lastX=0.0f;  //  上一帧 鼠标在屏幕的X位置
+float lastY=0.0f;  //  上一帧 鼠标在屏幕的Y位置
+bool  firstMouse = true;
 float MouseSensitivity = 0.05f;
-void MouseCallback(GLFWwindow* window, double currX, double currY) {
+void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
+	float currX = static_cast<float>(xpos);
+	float currY = static_cast<float>(ypos);
 	if (firstMouse == true)
 	{
 		firstMouse = false;
@@ -136,6 +146,37 @@ void MouseCallback(GLFWwindow* window, double currX, double currY) {
 	lastX = currX;
 	lastY = currY;
 	MyCamera.ProcessMouseMove(deltaX, deltaY);
+}
+
+void FrameBufferSizeCallback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
+}
+
+unsigned int LoadImageToGPU(const char* filename, GLint internalFormat, GLenum format, int textureSlot) {
+	unsigned int TexBuffer;
+	glGenTextures(1, &TexBuffer);
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
+	glBindTexture(GL_TEXTURE_2D, TexBuffer);
+	// 为当前绑定的纹理对象设置环绕、过滤方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	//【加载并配置纹理】
+	int width, height, nrChannel;
+	unsigned char* data = stbi_load(filename, &width, &height, &nrChannel, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		printf("Failed to load texture");
+	}
+	stbi_image_free(data);
+	return TexBuffer;
 }
 
 int main()
@@ -157,10 +198,12 @@ int main()
 	glfwMakeContextCurrent(window);
 	//关闭鼠标显示
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	// glfw: whenever the mouse moves, this callback is called
 	glfwSetCursorPosCallback(window, MouseCallback);
+	// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+	glfwSetFramebufferSizeCallback(window, FrameBufferSizeCallback);
 
-
-	// Init GLEW
+	// Init GLEW。也可以用GLAD库
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK)
 	{
@@ -168,12 +211,15 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
-	glViewport(0, 0, ScreenWidth, ScreenHeight);
-	// 启动深度缓存
-	glEnable(GL_DEPTH_TEST);
+	
+	
+	glEnable(GL_DEPTH_TEST);	// 启动深度缓存
 
-	Shader myShader("./src/glsl/vertexSource.glsl", "./src/glsl/fragmentSource.glsl");
-
+	Shader* myShader = new Shader("./src/glsl/vertexSource.glsl", "./src/glsl/fragmentSource.glsl");
+	Material* material = new Material(myShader, glm::vec3(1.0f, 0.5f, 0.31f),
+												glm::vec3(0.5f, 0.5f, 0.5f),
+												glm::vec3(1.0f, 0.5f, 0.31f),
+												150.0f);
 	// 【定义VAO VBO EBO】
 	unsigned int VAO;
 	unsigned int VBO;
@@ -200,62 +246,22 @@ int main()
 	 * ⑥：(void*)(3*sizeof(float)): 偏移量，表示数据在缓冲中距离起始位置的偏移量。位置属性在数组开头，所有偏移是0
 	 */
 	// 顶点位置属性
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);	
 	// 顶点颜色属性
 	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3*sizeof(float)));
 	//glEnableVertexAttribArray(1);
 	// uv属性
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
-	
+	// 法向量属性
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(5 * sizeof(float)));
+	glEnableVertexAttribArray(3);
 	//【生成Texture】
 	stbi_set_flip_vertically_on_load(true); // 图像上下颠倒问题
-
-	unsigned int TexBufferA;
-	glGenTextures(1, &TexBufferA);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, TexBufferA);
-	// 为当前绑定的纹理对象设置环绕、过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-	//【加载并配置纹理】
-	int width, height, nrChannel;
-	unsigned char* data = stbi_load("./dependencies/wall.jpg", &width, &height, &nrChannel, 0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}else
-	{
-		printf("Failed to load texture");
-	}
-	stbi_image_free(data);
-
-	unsigned int TexBufferB;
-	glGenTextures(1, &TexBufferB);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, TexBufferB);
-	// 为当前绑定的纹理对象设置环绕、过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	// load texture
-	unsigned char* data2 = stbi_load("./dependencies/face.jpg", &width, &height, &nrChannel, 0);
-	if (data2) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		printf("Failed to load texture");
-	}
-	stbi_image_free(data2);
+	unsigned int TexBufferA = LoadImageToGPU("./dependencies/wall.jpg", GL_RGB, GL_RGB, 0);
+	unsigned int TexBufferB = LoadImageToGPU("./dependencies/face.jpg", GL_RGBA, GL_RGBA, 1);
+	
 
 
 	//【定义变换矩阵】:trans
@@ -296,7 +302,7 @@ int main()
 	{
 		processKeyBoardInput(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glBindVertexArray(VAO);
@@ -308,27 +314,45 @@ int main()
 		glm::mat4 Projection;
 		Projection = glm::perspective(glm::radians(45.0f), float(ScreenWidth) / float(ScreenHeight), 0.1f, 100.0f);
 
+
 		for (int i = 0; i < 10; i++)
 		{
+	
 			//   Model矩阵：将物体从局部坐标转为世界坐标
 			glm::mat4 ModelMat;
 			ModelMat = glm::translate(ModelMat, cubePositions[i]);
 			float angle = 20.0f * i;
 			ModelMat = glm::rotate(ModelMat, glm::radians(angle), glm::vec3(1.0f, 1.0f, 0.0f));
 		
-			myShader.use();
-			glUniform1i(glGetUniformLocation(myShader.ID, "ourTexture"), 0);
-			glUniform1i(glGetUniformLocation(myShader.ID, "ourFace"), 1);
-			glUniformMatrix4fv(glGetUniformLocation(myShader.ID, "modelMat"), 1, GL_FALSE, glm::value_ptr(ModelMat));
-			glUniformMatrix4fv(glGetUniformLocation(myShader.ID, "viewMat"), 1, GL_FALSE, glm::value_ptr(ViewMat));
-			glUniformMatrix4fv(glGetUniformLocation(myShader.ID, "projMat"), 1, GL_FALSE, glm::value_ptr(Projection));
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			myShader->use();
 
+			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "modelMat"), 1, GL_FALSE, glm::value_ptr(ModelMat));
+			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "viewMat"), 1, GL_FALSE, glm::value_ptr(ViewMat));
+			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "projMat"), 1, GL_FALSE, glm::value_ptr(Projection));
+			glUniform1i(glGetUniformLocation(myShader->ID, "ourTexture"), 0);
+			glUniform1i(glGetUniformLocation(myShader->ID, "ourFace"), 1);
+			//glUniform3f(glGetUniformLocation(myShader.ID, "objColor"), 1.0f, 0.5f, 0.31f);
+			glUniform3f(glGetUniformLocation(myShader->ID, "ambientColor"), 0.1f, 0.1f, 0.1f);
+			glUniform3f(glGetUniformLocation(myShader->ID, "lightPos"), 0.0f, 8.0f, 8.0f);
+			glUniform3f(glGetUniformLocation(myShader->ID, "lightColor"), 1.0f, 1.0f, 1.0f);
+			glUniform3f(glGetUniformLocation(myShader->ID, "cameraPos"), MyCamera.Position.x, MyCamera.Position.y, MyCamera.Position.z);
+
+			myShader->SetUniform3f("ObjMaterial.ambient", material->ambient);
+			myShader->SetUniform3f("ObjMaterial.diffuse", material->diffuse);
+			myShader->SetUniform3f("ObjMaterial.specular", material->specular);
+			myShader->SetUniform1f("ObjMaterial.reflectivity", material->reflectivity);
+			if (i == 0)
+			{
+				glDrawArrays(GL_TRIANGLES, 36, 6);
+			}
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		}
 		
 
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
+		//Clean up prepare for next render loop
 		glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();

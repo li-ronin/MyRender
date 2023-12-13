@@ -5,6 +5,9 @@
 #include<fstream>
 #include<Sstream>
 #include<string>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Shader 
 {
@@ -15,11 +18,14 @@ public:
 	const char* fragmentSource;
 	unsigned int ID;  //Program ID
 	/*
-	* GLSL文件(磁盘)-->FileBuffer(内存)-->StringBuffer解释FileBuffer(内存)->
-	* -->Char*(CPU，OpenGL不操作String，操作的是char数组)
+	* GLSL鏂囦欢(纾佺洏)-->FileBuffer(鍐呭瓨)-->StringBuffer瑙ｉ噴FileBuffer(鍐呭瓨)->
+	* -->Char*(CPU锛孫penGL涓嶆搷浣淪tring锛屾搷浣滅殑鏄痗har鏁扮粍)
 	*/
 	Shader(const char* vertexPath, const char* fragmentPath);
 	void use();
+	void SetUniform3f(const char* name, glm::vec3 vector);
+	void SetUniform1f(const char* name, float f);
+
 
 private:
 	void checkCompileError(unsigned int ID, std::string type);
