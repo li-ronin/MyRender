@@ -66,6 +66,10 @@ void Shader::SetUniform1f(const char* name, float f) {
 	glUniform1f(glGetUniformLocation(ID, name), f);
 }
 
+void Shader::SetUniform1i(const char* name, unsigned int i) {
+	glUniform1i(glGetUniformLocation(ID, name), i);
+}
+
 void Shader::checkCompileError(unsigned int shader_id, std::string type)
 {
 	int result;

@@ -25,7 +25,13 @@ public:
 	void use();
 	void SetUniform3f(const char* name, glm::vec3 vector);
 	void SetUniform1f(const char* name, float f);
-
+	void SetUniform1i(const char* name, unsigned int i);
+	enum TextureSlot
+	{
+		DIFFUSE,
+		SPECULAR,
+		EMISSION
+	};
 
 private:
 	void checkCompileError(unsigned int ID, std::string type);

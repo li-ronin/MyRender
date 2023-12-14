@@ -216,10 +216,15 @@ int main()
 	glEnable(GL_DEPTH_TEST);	// 启动深度缓存
 
 	Shader* myShader = new Shader("./src/glsl/vertexSource.glsl", "./src/glsl/fragmentSource.glsl");
-	Material* material = new Material(myShader, glm::vec3(1.0f, 0.5f, 0.31f),
-												glm::vec3(0.5f, 0.5f, 0.5f),
-												glm::vec3(1.0f, 0.5f, 0.31f),
-												150.0f);
+
+	unsigned int diffuseMap = LoadImageToGPU("./dependencies/box.jpg", GL_RGB, GL_RGB, myShader->DIFFUSE); //jpg: GL_RGB  png: GL_RGBA    纹理槽位： 0    
+	unsigned int specularMap = LoadImageToGPU("./dependencies/specular.jpg", GL_RGB, GL_RGB, myShader->SPECULAR); //纹理槽位： 1
+	unsigned int emissionMap = LoadImageToGPU("./dependencies/emission.jpg", GL_RGB, GL_RGB, myShader->EMISSION); //纹理槽位： 1
+	glm::vec3 ambientColor{ 1.0f, 0.5f, 0.31f};
+	float reflectivity = 150.0f;
+	Material* material = new Material(myShader, diffuseMap, specularMap, emissionMap, ambientColor, reflectivity);
+												
+											
 	// 【定义VAO VBO EBO】
 	unsigned int VAO;
 	unsigned int VBO;
@@ -259,8 +264,8 @@ int main()
 	glEnableVertexAttribArray(3);
 	//【生成Texture】
 	stbi_set_flip_vertically_on_load(true); // 图像上下颠倒问题
-	unsigned int TexBufferA = LoadImageToGPU("./dependencies/wall.jpg", GL_RGB, GL_RGB, 0);
-	unsigned int TexBufferB = LoadImageToGPU("./dependencies/face.jpg", GL_RGBA, GL_RGBA, 1);
+	//unsigned int TexBufferA = LoadImageToGPU("./dependencies/wall.jpg", GL_RGB, GL_RGB, 0);
+	//unsigned int TexBufferB = LoadImageToGPU("./dependencies/face.jpg", GL_RGBA, GL_RGBA, 1);
 	
 
 
@@ -329,18 +334,21 @@ int main()
 			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "modelMat"), 1, GL_FALSE, glm::value_ptr(ModelMat));
 			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "viewMat"), 1, GL_FALSE, glm::value_ptr(ViewMat));
 			glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "projMat"), 1, GL_FALSE, glm::value_ptr(Projection));
-			glUniform1i(glGetUniformLocation(myShader->ID, "ourTexture"), 0);
-			glUniform1i(glGetUniformLocation(myShader->ID, "ourFace"), 1);
+			//glUniform1i(glGetUniformLocation(myShader->ID, "ourTexture"), 0);
+			//glUniform1i(glGetUniformLocation(myShader->ID, "ourFace"), 1);
 			//glUniform3f(glGetUniformLocation(myShader.ID, "objColor"), 1.0f, 0.5f, 0.31f);
 			glUniform3f(glGetUniformLocation(myShader->ID, "ambientColor"), 0.1f, 0.1f, 0.1f);
 			glUniform3f(glGetUniformLocation(myShader->ID, "lightPos"), 0.0f, 8.0f, 8.0f);
 			glUniform3f(glGetUniformLocation(myShader->ID, "lightColor"), 1.0f, 1.0f, 1.0f);
 			glUniform3f(glGetUniformLocation(myShader->ID, "cameraPos"), MyCamera.Position.x, MyCamera.Position.y, MyCamera.Position.z);
-
-			myShader->SetUniform3f("ObjMaterial.ambient", material->ambient);
-			myShader->SetUniform3f("ObjMaterial.diffuse", material->diffuse);
-			myShader->SetUniform3f("ObjMaterial.specular", material->specular);
-			myShader->SetUniform1f("ObjMaterial.reflectivity", material->reflectivity);
+			glUniform1f(glGetUniformLocation(myShader->ID, "time"), glfwGetTime());
+			
+			
+			material->shader->SetUniform1i("ObjMaterial.diffuse", material->shader->DIFFUSE);
+			material->shader->SetUniform1i("ObjMaterial.specular", material->shader->SPECULAR);
+			material->shader->SetUniform1i("ObjMaterial.emission", material->shader->EMISSION);
+			material->shader->SetUniform3f("ObjMaterial.ambient", material->ambient);
+			material->shader->SetUniform1f("ObjMaterial.reflectivity", material->reflectivity);
 			if (i == 0)
 			{
 				glDrawArrays(GL_TRIANGLES, 36, 6);
